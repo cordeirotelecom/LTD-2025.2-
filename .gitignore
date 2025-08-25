@@ -1,0 +1,9 @@
+# Ignorar arquivos e pastas comuns
+__pycache__/
+*.pyc
+.env
+node_modules/
+dist/
+build/
+.DS_Store
+*.log
