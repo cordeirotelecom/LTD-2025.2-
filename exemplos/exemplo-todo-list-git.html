@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Todo List - Exemplo Git/GitHub</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            overflow: hidden;
+        }
+
+        .header {
+            background: #4a5568;
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .header h1 {
+            margin-bottom: 10px;
+        }
+
+        .git-info {
+            font-size: 0.9em;
+            opacity: 0.8;
+        }
+
+        .add-todo {
+            padding: 20px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .todo-form {
+            display: flex;
+            gap: 10px;
+        }
+
+        .todo-input {
+            flex: 1;
+            padding: 12px;
+            border: 2px solid #e2e8f0;
+            border-radius: 6px;
+            font-size: 16px;
+        }
+
+        .todo-input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .add-btn {
+            padding: 12px 24px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background 0.3s;
+        }
+
+        .add-btn:hover {
+            background: #5a67d8;
+        }
+
+        .todo-list {
+            padding: 20px;
+        }
+
+        .todo-item {
+            display: flex;
+            align-items: center;
+            padding: 15px;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            margin-bottom: 10px;
+            transition: all 0.3s;
+        }
+
+        .todo-item:hover {
+            background: #f7fafc;
+        }
+
+        .todo-item.completed {
+            background: #f0fff4;
+            border-color: #68d391;
+        }
+
+        .todo-checkbox {
+            margin-right: 15px;
+            transform: scale(1.2);
+        }
+
+        .todo-text {
+            flex: 1;
+            font-size: 16px;
+        }
+
+        .todo-item.completed .todo-text {
+            text-decoration: line-through;
+            color: #68d391;
+        }
+
+        .delete-btn {
+            background: #f56565;
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .delete-btn:hover {
+            background: #e53e3e;
+        }
+
+        .stats {
+            background: #f7fafc;
+            padding: 15px 20px;
+            text-align: center;
+            color: #4a5568;
+            font-size: 14px;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: #a0aec0;
+        }
+
+        .commit-info {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(0,0,0,0.8);
+            color: white;
+            padding: 10px 15px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-family: 'Courier New', monospace;
+        }
+
+        @media (max-width: 480px) {
+            .todo-form {
+                flex-direction: column;
+            }
+            
+            .container {
+                margin: 0;
+                border-radius: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📝 Todo List</h1>
+            <div class="git-info">Exemplo prático: Git + GitHub + VS Code</div>
+        </div>
+
+        <div class="add-todo">
+            <form class="todo-form" id="todoForm">
+                <input 
+                    type="text" 
+                    class="todo-input" 
+                    id="todoInput" 
+                    placeholder="Digite uma nova tarefa..."
+                    required
+                >
+                <button type="submit" class="add-btn">Adicionar</button>
+            </form>
+        </div>
+
+        <div class="todo-list" id="todoList">
+            <!-- Tarefas serão inseridas aqui -->
+        </div>
+
+        <div class="stats" id="stats">
+            <span id="totalTodos">0</span> tarefas total | 
+            <span id="completedTodos">0</span> concluídas | 
+            <span id="pendingTodos">0</span> pendentes
+        </div>
+    </div>
+
+    <div class="commit-info">
+        <div>git commit -m "feat: implementar todo list"</div>
+        <div>branch: main | status: up to date</div>
+    </div>
+
+    <script>
+        class TodoApp {
+            constructor() {
+                this.todos = this.loadTodos();
+                this.init();
+            }
+
+            init() {
+                this.bindEvents();
+                this.render();
+                this.updateStats();
+            }
+
+            bindEvents() {
+                const form = document.getElementById('todoForm');
+                form.addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    this.addTodo();
+                });
+            }
+
+            addTodo() {
+                const input = document.getElementById('todoInput');
+                const text = input.value.trim();
+
+                if (text) {
+                    const todo = {
+                        id: Date.now(),
+                        text: text,
+                        completed: false,
+                        createdAt: new Date().toISOString()
+                    };
+
+                    this.todos.push(todo);
+                    this.saveTodos();
+                    this.render();
+                    this.updateStats();
+                    input.value = '';
+
+                    // Simular commit para o exemplo
+                    this.logGitAction(`git add todo.js && git commit -m "feat: adicionar tarefa '${text.substring(0, 20)}...'"`)
+                }
+            }
+
+            toggleTodo(id) {
+                const todo = this.todos.find(t => t.id === id);
+                if (todo) {
+                    todo.completed = !todo.completed;
+                    this.saveTodos();
+                    this.render();
+                    this.updateStats();
+
+                    const action = todo.completed ? 'marcar como concluída' : 'reabrir';
+                    this.logGitAction(`git commit -m "feat: ${action} tarefa"`);
+                }
+            }
+
+            deleteTodo(id) {
+                const todoIndex = this.todos.findIndex(t => t.id === id);
+                if (todoIndex > -1) {
+                    const todo = this.todos[todoIndex];
+                    this.todos.splice(todoIndex, 1);
+                    this.saveTodos();
+                    this.render();
+                    this.updateStats();
+
+                    this.logGitAction(`git commit -m "feat: remover tarefa '${todo.text.substring(0, 20)}...'"`);
+                }
+            }
+
+            render() {
+                const container = document.getElementById('todoList');
+
+                if (this.todos.length === 0) {
+                    container.innerHTML = `
+                        <div class="empty-state">
+                            <h3>🎉 Nenhuma tarefa!</h3>
+                            <p>Adicione uma tarefa acima para começar.</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                const todosHTML = this.todos.map(todo => `
+                    <div class="todo-item ${todo.completed ? 'completed' : ''}">
+                        <input 
+                            type="checkbox" 
+                            class="todo-checkbox"
+                            ${todo.completed ? 'checked' : ''}
+                            onchange="todoApp.toggleTodo(${todo.id})"
+                        >
+                        <span class="todo-text">${this.escapeHtml(todo.text)}</span>
+                        <button 
+                            class="delete-btn" 
+                            onclick="todoApp.deleteTodo(${todo.id})"
+                            title="Deletar tarefa"
+                        >
+                            🗑️
+                        </button>
+                    </div>
+                `).join('');
+
+                container.innerHTML = todosHTML;
+            }
+
+            updateStats() {
+                const total = this.todos.length;
+                const completed = this.todos.filter(t => t.completed).length;
+                const pending = total - completed;
+
+                document.getElementById('totalTodos').textContent = total;
+                document.getElementById('completedTodos').textContent = completed;
+                document.getElementById('pendingTodos').textContent = pending;
+            }
+
+            loadTodos() {
+                try {
+                    const stored = localStorage.getItem('todos');
+                    return stored ? JSON.parse(stored) : [];
+                } catch {
+                    return [];
+                }
+            }
+
+            saveTodos() {
+                localStorage.setItem('todos', JSON.stringify(this.todos));
+            }
+
+            escapeHtml(text) {
+                const div = document.createElement('div');
+                div.textContent = text;
+                return div.innerHTML;
+            }
+
+            logGitAction(command) {
+                const commitInfo = document.querySelector('.commit-info');
+                commitInfo.innerHTML = `
+                    <div>${command}</div>
+                    <div>branch: main | status: modified</div>
+                `;
+
+                setTimeout(() => {
+                    commitInfo.innerHTML = `
+                        <div>git status: working tree clean</div>
+                        <div>branch: main | status: up to date</div>
+                    `;
+                }, 2000);
+            }
+
+            // Métodos para demonstrar fluxo Git
+            exportData() {
+                const data = {
+                    todos: this.todos,
+                    exportedAt: new Date().toISOString(),
+                    version: '1.0.0'
+                };
+
+                const blob = new Blob([JSON.stringify(data, null, 2)], { 
+                    type: 'application/json' 
+                });
+                
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'todos-backup.json';
+                a.click();
+                URL.revokeObjectURL(url);
+
+                this.logGitAction('git add todos-backup.json && git commit -m "docs: adicionar backup de dados"');
+            }
+
+            clearCompleted() {
+                const beforeCount = this.todos.length;
+                this.todos = this.todos.filter(t => !t.completed);
+                const removedCount = beforeCount - this.todos.length;
+
+                if (removedCount > 0) {
+                    this.saveTodos();
+                    this.render();
+                    this.updateStats();
+                    this.logGitAction(`git commit -m "feat: limpar ${removedCount} tarefas concluídas"`);
+                }
+            }
+        }
+
+        // Inicializar aplicação
+        const todoApp = new TodoApp();
+
+        // Adicionar algumas funcionalidades extras
+        document.addEventListener('keydown', (e) => {
+            // Ctrl+E para exportar dados
+            if (e.ctrlKey && e.key === 'e') {
+                e.preventDefault();
+                todoApp.exportData();
+            }
+
+            // Ctrl+Shift+C para limpar concluídas
+            if (e.ctrlKey && e.shiftKey && e.key === 'C') {
+                e.preventDefault();
+                todoApp.clearCompleted();
+            }
+        });
+
+        // Easter egg: Konami code para demonstração Git
+        let konamiCode = [];
+        const konamiSequence = ['ArrowUp', 'ArrowUp', 'ArrowDown', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'ArrowLeft', 'ArrowRight', 'KeyB', 'KeyA'];
+
+        document.addEventListener('keydown', (e) => {
+            konamiCode.push(e.code);
+            if (konamiCode.length > konamiSequence.length) {
+                konamiCode.shift();
+            }
+
+            if (JSON.stringify(konamiCode) === JSON.stringify(konamiSequence)) {
+                alert('🎉 Easter Egg encontrado!\n\nComandos Git úteis:\n• Ctrl+E: Exportar dados\n• Ctrl+Shift+C: Limpar concluídas\n\ngit commit -m "feat: adicionar easter egg"');
+                konamiCode = [];
+            }
+        });
+
+        // Simulação de conflito Git (para demonstração)
+        window.simulateGitConflict = function() {
+            const commitInfo = document.querySelector('.commit-info');
+            commitInfo.innerHTML = `
+                <div style="color: #f56565;">CONFLICT: merge conflict in todo.js</div>
+                <div>use 'git mergetool' to resolve</div>
+            `;
+
+            setTimeout(() => {
+                commitInfo.innerHTML = `
+                    <div style="color: #68d391;">conflict resolved ✓</div>
+                    <div>git commit -m "merge: resolver conflito"</div>
+                `;
+            }, 3000);
+        };
+
+        console.log(`
+🚀 Todo List - Exemplo Git/GitHub
+
+Comandos demonstrados:
+• git add .
+• git commit -m "mensagem"
+• git push origin main
+• git merge feature-branch
+
+Atalhos:
+• Ctrl+E: Exportar dados
+• Ctrl+Shift+C: Limpar concluídas
+• Konami Code: Easter egg
+
+Para simular conflito Git, execute:
+simulateGitConflict()
+        `);
+    </script>
+</body>
+</html>

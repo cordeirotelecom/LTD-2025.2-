@@ -585,8 +585,8 @@ volumes:
 ### Instalação
 ```bash
 # Clonar repositório
-git clone https://github.com/cordeirotelecom/sistema-analise-codigo
-cd sistema-analise-codigo
+git clone https://github.com/cordeirotelecom/LTD-2025.2-
+cd LTD-2025.2-/projetos-completos/sistema-analise-codigo
 
 # Configurar variáveis de ambiente
 cp .env.example .env
