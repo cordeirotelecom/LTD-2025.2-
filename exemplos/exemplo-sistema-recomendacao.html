@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Sistema de Recomendação</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; background: #f5f5f5; }
+    .container { max-width: 800px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; }
+    .produto { border: 1px solid #ddd; margin: 10px 0; padding: 15px; border-radius: 5px; }
+    .recomendacao { background: #e8f5e8; border-color: #4caf50; }
+    select { padding: 10px; margin: 10px 0; width: 200px; }
+    h1, h3 { color: #333; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🎯 Sistema de Recomendação Inteligente</h1>
+    <p>Selecione um usuário para ver recomendações personalizadas baseadas em algoritmo de filtragem colaborativa.</p>
+    
+    <select id="usuario" onchange="mostrarRecomendacoes()">
+      <option value="">Selecione um usuário</option>
+      <option value="usuario1">Usuário 1 (Tech Enthusiast)</option>
+      <option value="usuario2">Usuário 2 (Gamer)</option>
+      <option value="usuario3">Usuário 3 (Professional)</option>
+    </select>
+    
+    <div id="historico">
+      <h3>📚 Histórico de Compras</h3>
+      <div id="compras"></div>
+    </div>
+    
+    <div id="recomendacoes">
+      <h3>💡 Recomendações Personalizadas</h3>
+      <div id="sugestoes"></div>
+    </div>
+  </div>
+
+  <script>
+    // Base de dados simulada
+    const usuarios = {
+      'usuario1': ['produto1', 'produto2', 'produto3'],
+      'usuario2': ['produto2', 'produto4', 'produto5'],
+      'usuario3': ['produto1', 'produto4', 'produto6']
+    };
+
+    const produtos = [
+      { id: 'produto1', nome: 'Smartphone Galaxy S24', categoria: 'Eletrônicos', preco: 'R$ 3.299' },
+      { id: 'produto2', nome: 'Notebook Dell XPS', categoria: 'Eletrônicos', preco: 'R$ 5.999' },
+      { id: 'produto3', nome: 'Fone Bluetooth Sony', categoria: 'Acessórios', preco: 'R$ 599' },
+      { id: 'produto4', nome: 'Mouse Gamer Logitech', categoria: 'Acessórios', preco: 'R$ 299' },
+      { id: 'produto5', nome: 'Teclado Mecânico RGB', categoria: 'Acessórios', preco: 'R$ 449' },
+      { id: 'produto6', nome: 'Monitor 4K LG', categoria: 'Eletrônicos', preco: 'R$ 1.899' }
+    ];
+
+    function recomendar(usuarioAtual) {
+      const comprasUsuario = usuarios[usuarioAtual] || [];
+      const recomendacoes = new Set();
+      
+      // Encontrar usuários similares
+      for (let outroUsuario in usuarios) {
+        if (outroUsuario !== usuarioAtual) {
+          const comprasOutro = usuarios[outroUsuario];
+          const produtosComuns = comprasUsuario.filter(p => comprasOutro.includes(p));
+          
+          // Se há produtos em comum, recomendar outros produtos do usuário similar
+          if (produtosComuns.length > 0) {
+            comprasOutro.forEach(produto => {
+              if (!comprasUsuario.includes(produto)) {
+                recomendacoes.add(produto);
+              }
+            });
+          }
+        }
+      }
+      
+      return Array.from(recomendacoes);
+    }
+
+    function mostrarRecomendacoes() {
+      const usuarioSelecionado = document.getElementById('usuario').value;
+      if (!usuarioSelecionado) {
+        document.getElementById('compras').innerHTML = '';
+        document.getElementById('sugestoes').innerHTML = '';
+        return;
+      }
+      
+      // Mostrar histórico
+      const compras = usuarios[usuarioSelecionado] || [];
+      const comprasDiv = document.getElementById('compras');
+      comprasDiv.innerHTML = '';
+      compras.forEach(produtoId => {
+        const produto = produtos.find(p => p.id === produtoId);
+        comprasDiv.innerHTML += `
+          <div class="produto">
+            <strong>${produto.nome}</strong><br>
+            Categoria: ${produto.categoria} | ${produto.preco}
+          </div>
+        `;
+      });
+      
+      // Mostrar recomendações
+      const recomendacoes = recomendar(usuarioSelecionado);
+      const sugestoesDiv = document.getElementById('sugestoes');
+      sugestoesDiv.innerHTML = '';
+      
+      if (recomendacoes.length === 0) {
+        sugestoesDiv.innerHTML = '<p>Nenhuma recomendação disponível no momento.</p>';
+      } else {
+        recomendacoes.forEach(produtoId => {
+          const produto = produtos.find(p => p.id === produtoId);
+          sugestoesDiv.innerHTML += `
+            <div class="produto recomendacao">
+              <strong>🎯 ${produto.nome}</strong><br>
+              Categoria: ${produto.categoria} | ${produto.preco}<br>
+              <small>Recomendado baseado em usuários com gostos similares</small>
+            </div>
+          `;
+        });
+      }
+    }
+  </script>
+</body>
+</html>
