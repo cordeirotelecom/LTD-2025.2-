@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Chatbot Web Completo</title>
+  <style>
+    #chat { width: 300px; margin: 0 auto; background: #fff; padding: 10px; border-radius: 8px; box-shadow: 0 0 10px #ccc; }
+    #mensagens { height: 200px; overflow-y: auto; border: 1px solid #eee; margin-bottom: 10px; padding: 5px; }
+    input, button { width: 100%; margin-top: 5px; }
+  </style>
+</head>
+<body>
+  <div id="chat">
+    <div id="mensagens"></div>
+    <input type="text" id="entrada" placeholder="Digite sua mensagem...">
+    <button onclick="enviarMensagem()">Enviar</button>
+  </div>
+  <script>
+    function enviarMensagem() {
+      var entrada = document.getElementById('entrada').value;
+      if (!entrada) return;
+      adicionarMensagem('Você: ' + entrada);
+      var resposta = gerarResposta(entrada);
+      adicionarMensagem('Bot: ' + resposta);
+      document.getElementById('entrada').value = '';
+    }
+    function adicionarMensagem(msg) {
+      var mensagens = document.getElementById('mensagens');
+      mensagens.innerHTML += '<div>' + msg + '</div>';
+      mensagens.scrollTop = mensagens.scrollHeight;
+    }
+    function gerarResposta(texto) {
+      texto = texto.toLowerCase();
+      if (texto.includes('oi')) return 'Olá! Como posso ajudar?';
+      if (texto.includes('preço')) return 'Consulte nosso site para preços atualizados.';
+      if (texto.includes('tchau')) return 'Até logo!';
+      return 'Desculpe, não entendi.';
+    }
+  </script>
+</body>
+</html>
